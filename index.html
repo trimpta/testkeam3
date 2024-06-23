@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KEAM Score Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-top: 10px;
+        }
+        
+        input, button {
+            padding: 10px;
+            margin-top: 5px;
+        }
+        
+        .exam-version-buttons button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-top: 10px;
+        }
+        
+        .exam-version-buttons button:hover {
+            background-color: #0056b3;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+  <script>
+        window.onload = function() {
+            // Popup message
+            alert("This site is currently not operational. Press OK to be redirected to the new site.");
+            window.location.href = "https://trimpta.pythonanywhere.com/"; // Redirect to the alternative URL
+        }
+    </script>
+    <div class="container">
+        <h1>KEAM Score Calculator</h1>
+        <form id="keam-form">
+            <label for="file">Upload your response file:</label>
+            <input type="file" id="file" name="file" accept=".txt" required>
+
+            <label for="exam_version">Exam on:</label>
+            <div class="exam-version-buttons">
+                <button type="button" data-version="5">5th</button>
+                <button type="button" data-version="6">6th</button>
+                <button type="button" data-version="7">7th</button>
+                <button type="button" data-version="8">8th</button>
+                <button type="button" data-version="9">9th</button>
+            </div>
+            <input type="hidden" id="exam_version" name="exam_version" required>
+
+            <label for="physics_chemistry_maths_marks">Physics + Chemistry + Maths Marks:</label>
+            <input type="number" id="physics_chemistry_maths_marks" name="physics_chemistry_maths_marks" required>
+
+            <button type="submit">Calculate</button>
+        </form>
+        <div id="result"></div>
+
+        <div class="instructions">
+            <h2>How to get your responses.txt file:</h2>
+            <ol>
+                <li>Log into the <a href="https://cee.kerala.gov.in/keam2024/" target="_blank">KEAM 2024 Portal</a>.</li>
+                <li>Navigate to the "Candidate Response" page.</li>
+                <li>Select all the text on the page by pressing <strong>Ctrl + A</strong> (Windows) or <strong>Cmd + A</strong> (Mac).</li>
+                <li>Copy the selected text by pressing <strong>Ctrl + C</strong> (Windows) or <strong>Cmd + C</strong> (Mac).</li>
+                <li>Open a text editor (like Notepad on Windows or TextEdit on Mac).</li>
+                <li>Paste the copied text into the text editor by pressing <strong>Ctrl + V</strong> (Windows) or <strong>Cmd + V</strong> (Mac).</li>
+                <li>Save the file as <strong>responses.txt</strong> on your computer.</li>
+                <li>Upload the saved <strong>responses.txt</strong> file using the form above.</li>
+            </ol>
+        </div>
+    </div>
+    <footer>
+        Made by Shreevardhan
+    </footer>
+    <script>
+        document.querySelectorAll('.exam-version-buttons button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('exam_version').value = this.getAttribute('data-version');
+                document.querySelectorAll('.exam-version-buttons button').forEach(btn => btn.style.backgroundColor = '#007bff');
+                this.style.backgroundColor = '#0056b3';
+            });
+        });
+
+        document.getElementById('keam-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('file');
+            const examVersionInput = document.getElementById('exam_version');
+            const marksInput = document.getElementById('physics_chemistry_maths_marks');
+
+            formData.append('file', fileInput.files[0]);
+            formData.append('exam_version', examVersionInput.value);
+            formData.append('physics_chemistry_maths_marks', marksInput.value);
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('result').innerHTML = `
+                        <p>Cancelled Questions: ${result.cancelled_questions}</p>
+                        <p>KEAM Marks: ${result.keam_score}/${(150-result.cancelled_questions)*4}</p>
+                        <p>Total Marks: ${result.total_marks}/${result.max_marks} <b>OR</b> ${Math.round(result.total_marks*6000/result.max_marks)/10}/600 </p>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

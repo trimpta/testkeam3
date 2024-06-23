@@ -139,7 +139,7 @@
             formData.append('physics_chemistry_maths_marks', marksInput.value);
 
             try {
-                const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://trimpta.pythonanywhere.com/calculate'), {
+                const response = await fetch('https://corsproxy.io/?https://trimpta.pythonanywhere.com/calculate', {
                     method: 'POST',
                     body: formData
                 });
